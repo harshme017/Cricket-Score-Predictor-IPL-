@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CricketAI — Score Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+  <!-- Animated background orbs -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Left image slider -->
+  <aside class="sidebar sidebar-left" aria-hidden="true">
+    <div class="slider-track slider-track-left" id="leftTrack"></div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-mark">
+        <span class="logo-icon">🏏</span>
+        <span class="logo-text">Cricket<strong>AI</strong></span>
+        <span class="logo-icon">🏏</span>
+      </div>
+      <p class="header-tagline">ML - Powered Score Predictor &nbsp;·&nbsp; IPL 2008 – 2026</p>
+    </header>
+
+    <!-- Prediction Card -->
+    <div class="card predictor-card">
+      <div class="card-header">
+        <h2 class="card-title">Predict Final Score</h2>
+        <span class="badge">IPL Score Predictor</span>
+      </div>
+
+      <div class="form-grid" id="predictionForm">
+
+        <!-- Teams row -->
+        <div class="form-group">
+          <label class="form-label" for="batting_team">
+            <span class="label-icon">🏏</span> Batting Team
+          </label>
+          <div class="select-wrapper">
+            <select id="batting_team" name="batting_team" class="form-select" required>
+              <option value="" disabled selected>Select Batting Team…</option>
+              {% for team in teams %}
+              <option value="{{ team }}">{{ team }}</option>
+              {% endfor %}
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="bowling_team">
+            <span class="label-icon">🎯</span> Bowling Team
+          </label>
+          <div class="select-wrapper">
+            <select id="bowling_team" name="bowling_team" class="form-select" required>
+              <option value="" disabled selected>Select Bowling Team…</option>
+              {% for team in teams %}
+              <option value="{{ team }}">{{ team }}</option>
+              {% endfor %}
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+        </div>
+
+        <!-- Venue -->
+        <div class="form-group form-group-full">
+          <label class="form-label" for="venue">
+            <span class="label-icon">🏟️</span> Stadium / Venue
+          </label>
+          <div class="select-wrapper">
+            <select id="venue" name="venue" class="form-select" required>
+              <option value="" disabled selected>Select Stadium / Venue…</option>
+              {% for v in venues %}
+              <option value="{{ v }}">{{ v }}</option>
+              {% endfor %}
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+        </div>
+
+        <!-- Overs + Balls -->
+        <div class="form-group">
+          <label class="form-label">
+            <span class="label-icon">⏱️</span> Current Over
+          </label>
+          <div class="over-selector">
+            <div class="over-part">
+              <label class="sub-label" for="overs">Overs</label>
+              <div class="select-wrapper">
+                <select id="overs" name="overs" class="form-select">
+                  {% for i in range(21) %}
+                  <option value="{{ i }}" {% if i == 10 %}selected{% endif %}>{{ i }}</option>
+                  {% endfor %}
+                </select>
+                <span class="select-arrow">▾</span>
+              </div>
+            </div>
+            <div class="over-dot">.</div>
+            <div class="over-part">
+              <label class="sub-label" for="balls">Balls</label>
+              <div class="select-wrapper">
+                <select id="balls" name="balls" class="form-select">
+                  {% for i in range(6) %}
+                  <option value="{{ i }}">{{ i }}</option>
+                  {% endfor %}
+                </select>
+                <span class="select-arrow">▾</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current Score -->
+        <div class="form-group">
+          <label class="form-label" for="current_score">
+            <span class="label-icon">🔢</span> Current Score
+          </label>
+          <input type="number" id="current_score" name="current_score"
+                 class="form-input" placeholder="e.g. 90" min="0" max="400" required />
+        </div>
+
+        <!-- Wickets Lost -->
+        <div class="form-group">
+          <label class="form-label" for="wickets_lost">
+            <span class="label-icon">❌</span> Wickets Lost
+          </label>
+          <div class="select-wrapper">
+            <select id="wickets_lost" name="wickets_lost" class="form-select">
+              {% for i in range(10) %}
+              <option value="{{ i }}">{{ i }}</option>
+              {% endfor %}
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+        </div>
+
+        <!-- Extras -->
+        <div class="form-group">
+          <label class="form-label" for="extras_run">
+            <span class="label-icon">➕</span> Extras Runs
+          </label>
+          <input type="number" id="extras_run" name="extras_run"
+                 class="form-input" placeholder="e.g. 5" min="0" max="50" value="0" />
+        </div>
+
+        <!-- Last 5 overs: runs -->
+        <div class="form-group">
+          <label class="form-label" for="last_5_runs">
+            <span class="label-icon">🔥</span> Runs (Last 5 Overs)
+          </label>
+          <input type="number" id="last_5_runs" name="last_5_runs"
+                 class="form-input" placeholder="e.g. 45" min="0" max="120" value="0" />
+        </div>
+
+        <!-- Last 5 overs: wickets -->
+        <div class="form-group">
+          <label class="form-label" for="last_5_wickets">
+            <span class="label-icon">💥</span> Wickets (Last 5 Overs)
+          </label>
+          <div class="select-wrapper">
+            <select id="last_5_wickets" name="last_5_wickets" class="form-select">
+              {% for i in range(6) %}
+              <option value="{{ i }}">{{ i }}</option>
+              {% endfor %}
+            </select>
+            <span class="select-arrow">▾</span>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="form-group form-group-full">
+          <button type="button" class="predict-btn" id="predictBtn" onclick="handlePredict()">
+            <span class="btn-text">Predict Final Score</span>
+            <span class="btn-loader" id="btnLoader" style="display:none;">
+              <span class="spinner"></span> Analysing…
+            </span>
+          </button>
+        </div>
+
+      </div><!-- /form-grid -->
+
+      <!-- Error container -->
+      <div class="error-container" id="errorContainer" style="display:none;"></div>
+
+    </div><!-- /predictor-card -->
+
+    <!-- Result Card (hidden until prediction) -->
+    <div class="card result-card" id="resultCard" style="display:none;">
+      <div class="result-header">
+        <div class="result-vs">
+          <span id="resBatting" class="res-team">—</span>
+          <span class="vs-divider">vs</span>
+          <span id="resBowling" class="res-team">—</span>
+        </div>
+        <span class="res-phase-badge" id="resPhaseBadge">—</span>
+      </div>
+
+      <div class="score-display">
+        <div class="predicted-label">Predicted Final Score</div>
+        <div class="score-range">
+          <span class="score-low" id="resLow">—</span>
+          <span class="score-dash">–</span>
+          <span class="score-high" id="resHigh">—</span>
+        </div>
+        <div class="score-exact">Best estimate: <strong id="resBest">—</strong> runs</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-chip">
+          <span class="stat-icon">📈</span>
+          <span class="stat-label">Run Rate</span>
+          <span class="stat-value" id="resRR">—</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-icon">🧤</span>
+          <span class="stat-label">Wickets Left</span>
+          <span class="stat-value" id="resWL">—</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-icon">🎯</span>
+          <span class="stat-label">Balls Left</span>
+          <span class="stat-value" id="resBL">—</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-icon">🏟️</span>
+          <span class="stat-label">Venue Avg</span>
+          <span class="stat-value" id="resVA">—</span>
+        </div>
+      </div>
+
+      <div class="insight-banner" id="insightBanner">
+        <span class="insight-emoji" id="insightEmoji">🏆</span>
+        <span class="insight-text" id="insightText">—</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      Powered by Machine Learning &nbsp;·&nbsp; 
+      Flask &nbsp;·&nbsp;
+      Random Forest &nbsp;·&nbsp;
+      IPL Analytics
+    </footer>
+    <footer class="app-footer">
+      Developed By Harsh 🔥
+    </footer>
+
+  </main>
+
+  <!-- Right image slider -->
+  <aside class="sidebar sidebar-right" aria-hidden="true">
+    <div class="slider-track slider-track-right" id="rightTrack"></div>
+  </aside>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
