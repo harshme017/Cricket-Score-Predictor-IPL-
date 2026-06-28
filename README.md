@@ -101,20 +101,6 @@ cd Cricket-Score-Predictor-IPL-
 pip install -r requirements.txt
 ```
 
-### Add Your IPL Images
-
-Drop your celebration images into `static/images/` named by year:
-
-```
-static/images/
-├── 2008.jpg
-├── 2009.jpg
-├── ...
-└── 2026.jpg
-```
-
-These auto-load into the animated sidebars with year labels.
-
 ### Run
 
 ```bash
